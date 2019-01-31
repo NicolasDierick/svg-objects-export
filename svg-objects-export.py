@@ -26,7 +26,7 @@ This script requires Inkscape (tested with 0.48)
  * notice to the creator. Constructive feedback is always welcome nevertheless.
 """
 import argparse, sys, os, subprocess, cmd
-import re, lxml
+import re, lxml, json
 
 
 #constants (feel free to change these to your favorite defaults)
@@ -114,6 +114,8 @@ parser.add_argument('-X', '--extra', metavar='Inkscape_Export_Options', default=
 	help='Extra options passed through (litterally) to inkscape for export. See Inkscape --help for more.')
 parser.add_argument('-D','--debug', action='store_true', default=False,
 	help='Generates (very) verbose output.')
+parser.add_argument('-J','--json', metavar='Json destination file', default=False,
+	help='Export a json file with object coordonates.')
 
 
 
@@ -169,16 +171,26 @@ def exportObject(obj,args,prefix,extension,infile):
 	debug("exporting ", obj)
 	destfile = ''.join([args.destdir, prefix, obj, '.', extension])
 	export = args.force
+	print obj
 	if not args.force:
 		if (not os.path.exists(destfile)):
 			export = True
 		elif not args.silent: # silent does not overwrite, use -sf if needed.
 			export = confirm(prompt='File %s already exists, do you want to overwrite it?' % (destfile))				
-	if export:				
+	if export:
 		message('  '+obj+' to '+destfile)
 		command = args.inkscape+' -i "'+obj+'" --export-'+args.type+' "'+destfile+'" '+args.extra+' "'+infile+'" '
 		debug("runnning "+command)
 		run(command, shell=True)
+
+        if args.json:
+			jsondata[obj] = { 'x': 0, 'y': 0};
+			command = args.inkscape+' --query-id "'+obj+'" -X "'+infile+'" '
+			debug("runnning "+command)
+			jsondata[obj]['x'] = run(command, shell=True)
+			command = args.inkscape+' --query-id "'+obj+'" -Y "'+infile+'" '
+			debug("runnning "+command)
+			jsondata[obj]['y'] = run(command, shell=True)
 
 ## handle arguments
 args = parser.parse_args()
@@ -217,6 +229,9 @@ debug("arguments: ", args)
 prefix = args.prefix
 
 for infile in args.infiles:
+	#Open JSON export file
+	jsondata = {}
+
 	if ('FILE' in args.prefix): #update prefix if needed		
 		prefix = args.prefix.replace('FILE',os.path.splitext(os.path.split(infile)[1])[0])
 		#debug("  updated prefix to ", prefix, "  - infile is ", infile)	
@@ -252,4 +267,6 @@ for infile in args.infiles:
 				obj = obj.split(',')[0] #keep only ID:
 				if not(obj in objects):
 					exportObject(obj,args,prefix,extension,infile)
-		
+	if (args.json):
+		with open(args.json, 'w') as jsonfile:
+			json_export = json.dump(jsondata, jsonfile);
