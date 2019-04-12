@@ -27,7 +27,6 @@ This script requires Inkscape (tested with 0.48)
 """
 import argparse, sys, os, subprocess, cmd
 import re, lxml, json
-lkjmlk
 
 #constants (feel free to change these to your favorite defaults)
 default_pattern = '^(rect|layer|path|use|g\d|svg|text|tspan|outline|image|circle|ellipse)\d'
@@ -184,13 +183,14 @@ def exportObject(obj,args,prefix,extension,infile):
 		run(command, shell=True)
 
         if args.json:
-			jsondata[obj] = { 'x': 0, 'y': 0};
+			objJson = { 'id' : obj, 'x': 0, 'y': 0};
 			command = args.inkscape+' --query-id "'+obj+'" -X "'+infile+'" '
 			debug("runnning "+command)
-			jsondata[obj]['x'] = run(command, shell=True)
+			objJson['x'] = run(command, shell=True)
 			command = args.inkscape+' --query-id "'+obj+'" -Y "'+infile+'" '
 			debug("runnning "+command)
-			jsondata[obj]['y'] = run(command, shell=True)
+			objJson['y'] = run(command, shell=True)
+			jsondata.append( objJson )
 
 ## handle arguments
 args = parser.parse_args()
@@ -230,7 +230,7 @@ prefix = args.prefix
 
 for infile in args.infiles:
 	#Open JSON export file
-	jsondata = {}
+	jsondata = []
 
 	if ('FILE' in args.prefix): #update prefix if needed		
 		prefix = args.prefix.replace('FILE',os.path.splitext(os.path.split(infile)[1])[0])
