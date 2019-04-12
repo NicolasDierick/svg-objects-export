@@ -27,7 +27,7 @@ This script requires Inkscape (tested with 0.48)
 """
 import argparse, sys, os, subprocess, cmd
 import re, lxml, json
-
+lkjmlk
 
 #constants (feel free to change these to your favorite defaults)
 default_pattern = '^(rect|layer|path|use|g\d|svg|text|tspan|outline|image|circle|ellipse)\d'
