@@ -180,7 +180,10 @@ def exportObject(obj,args,prefix,extension,infile):
 		message('  '+obj+' to '+destfile)
 		command = args.inkscape+' -i "'+obj+'" --export-'+args.type+' "'+destfile+'" '+args.extra+' "'+infile+'" '
 		debug("runnning "+command)
-		run(command, shell=True)
+		try:
+			run(command, shell=True)
+		except:
+			message('Failed to export file')
 
         if args.json:
 			objJson = { 'id' : obj, 'x': 0, 'y': 0};
